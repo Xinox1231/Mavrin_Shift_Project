@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.ksp)
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -26,6 +28,9 @@ android {
             )
         }
     }
+    buildFeatures{
+        viewBinding = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -45,4 +50,24 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    //LifeCycle
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    //Jetpack Navigation
+    implementation (libs.androidx.navigation.navigation.fragment.ktx)
+    implementation (libs.androidx.navigation.ui.ktx)
+
+    //Room
+    implementation(libs.androidx.room)
+    ksp(libs.androidx.room.compiler)
+
+    //Dagger2
+    implementation(libs.dagger.android)
+    ksp(libs.dagger.compiler)
+
+    //Coil
+    implementation(libs.io.coil)
+
+
 }
