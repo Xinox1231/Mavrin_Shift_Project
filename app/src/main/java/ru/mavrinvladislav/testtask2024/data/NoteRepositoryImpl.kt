@@ -31,6 +31,11 @@ class NoteRepositoryImpl(
             .map { list -> list.map { mapper.mapDbNoteToDomain(it) } }
     }
 
+    override fun searchNote(query: String): Flow<List<Note>> {
+        return localDataSource.searchNote(query)
+            .map { list -> list.map { mapper.mapDbNoteToDomain(it) } }
+    }
+
     override suspend fun deleteNote(note: Note) {
         withContext(Dispatchers.IO) {
             localDataSource.deleteNote(note.id)

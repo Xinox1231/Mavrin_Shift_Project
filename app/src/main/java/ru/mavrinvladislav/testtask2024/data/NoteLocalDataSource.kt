@@ -11,5 +11,7 @@ interface NoteLocalDataSource {
     suspend fun deleteNote(noteId: Int)
 
     fun getNotesList(): Flow<List<NoteDb>>
+
+    fun searchNote(query: String): Flow<List<NoteDb>>
     suspend fun getNote(noteId: Int): NoteDb
 }

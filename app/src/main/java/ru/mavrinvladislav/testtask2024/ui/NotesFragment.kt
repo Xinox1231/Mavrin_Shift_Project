@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
+import androidx.appcompat.widget.SearchView
 import ru.mavrinvladislav.testtask2024.databinding.FragmentNotesBinding
 import ru.mavrinvladislav.testtask2024.presentation.NotesStateScreen
 import ru.mavrinvladislav.testtask2024.presentation.NotesViewModel
@@ -51,13 +52,33 @@ class NotesFragment : Fragment() {
         setupClickListeners()
         binding.rcViewNotes.adapter = adapter
         observeViewModel()
+        setupOnElementClickListeners()
+
+        binding.searchViewNotes.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                Log.d(LOG_TAG, "onQueryTextSubmit")
+                query?.let {
+                    viewModel.searchNote(query)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrBlank()){
+
+                }
+                return true
+            }
+        })
+
+
+    }
+
+    private fun setupOnElementClickListeners() {
         adapter.onNoteClickListener = { note ->
             launchNoteEditorFragmentEdit(note.id)
         }
 
-    }
-
-    private fun onLongNoteClick() {
         val vibrator = requireContext().getSystemService(Vibrator::class.java)
 
         adapter.onNoteLongClickListener = { note ->
@@ -79,10 +100,13 @@ class NotesFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+        adapter.onNoteClickListener = { note ->
+            launchNoteEditorFragmentEdit(note.id)
+        }
         binding.floatingButtonAddNote.setOnClickListener {
             launchNoteEditorFragmentAdd()
         }
-        onLongNoteClick()
+        setupOnElementClickListeners()
     }
 
     override fun onDestroyView() {

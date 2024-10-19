@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
@@ -16,6 +17,7 @@ import ru.mavrinvladislav.testtask2024.data.db.NotesDataBase
 import ru.mavrinvladislav.testtask2024.domain.DeleteNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.GetAllNotesUseCase
 import ru.mavrinvladislav.testtask2024.domain.Note
+import ru.mavrinvladislav.testtask2024.domain.SearchNotesUseCase
 
 class NotesViewModel(
     application: Application
@@ -27,6 +29,9 @@ class NotesViewModel(
     private val repository = NoteRepositoryImpl(localDataSource, mapper)
     private val getAllNotesUseCase = GetAllNotesUseCase(repository)
     private val deleteNoteUseCase = DeleteNoteUseCase(repository)
+    private val searchNotesUseCase = SearchNotesUseCase(repository)
+
+    private val searchState = MutableSharedFlow<NotesStateScreen>()
 
     val state = getAllNotesUseCase().map {
         if (it.isEmpty()) {
@@ -36,6 +41,10 @@ class NotesViewModel(
         }
     }.onStart {
         emit(NotesStateScreen.Loading)
+    }.mergeWith(searchState)
+
+    private fun <T> Flow<T>.mergeWith(another: Flow<T>): Flow<T> {
+        return merge(this, another)
     }
 
     fun deleteNote(note: Note) {
@@ -43,4 +52,18 @@ class NotesViewModel(
             deleteNoteUseCase(note)
         }
     }
+
+    fun searchNote(query: String) {
+        viewModelScope.launch {
+            val dbFlow = searchNotesUseCase(query).map {
+                if (it.isEmpty()) {
+                    NotesStateScreen.NoContent
+                } else {
+                    NotesStateScreen.ContentLoaded(it) as NotesStateScreen
+                }
+            }
+            searchState.emitAll(dbFlow)
+        }
+    }
+
 }

@@ -19,6 +19,10 @@ class NoteRoomLocalDataSource(
         return notesDao.getNotesList()
     }
 
+    override fun searchNote(query: String): Flow<List<NoteDb>> {
+        return notesDao.searchNotes(query)
+    }
+
     override suspend fun getNote(noteId: Int): NoteDb {
         return notesDao.getNote(noteId)
     }

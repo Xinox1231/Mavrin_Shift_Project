@@ -17,6 +17,8 @@ interface NoteRepository {
 
     fun getAllNotes(): Flow<List<Note>>
 
+    fun searchNote(query: String): Flow<List<Note>>
+
     suspend fun deleteNote(
         note: Note
     )

@@ -20,4 +20,9 @@ interface NotesDao {
 
     @Query("SELECT * FROM all_notes WHERE id=:noteId LIMIT 1")
     suspend fun getNote(noteId: Int): NoteDb
+
+    @Query("SELECT * FROM all_notes WHERE title LIKE '%' || :query || '%'")
+    fun searchNotes(query: String): Flow<List<NoteDb>>
+
+
 }
