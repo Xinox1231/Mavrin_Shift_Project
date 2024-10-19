@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [NoteDb::class], version = 1, exportSchema = false)
+@Database(entities = [NoteDb::class], version = 2, exportSchema = false)
 abstract class NotesDataBase : RoomDatabase() {
 
     companion object {
@@ -19,7 +19,8 @@ abstract class NotesDataBase : RoomDatabase() {
                     return it
                 }
                 val instance =
-                    Room.databaseBuilder(application, NotesDataBase::class.java, DB_NAME).build()
+                    Room.databaseBuilder(application, NotesDataBase::class.java, DB_NAME)
+                        .build()
                 db = instance
                 return instance
             }

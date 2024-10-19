@@ -3,7 +3,10 @@ package ru.mavrinvladislav.testtask2024.presentation
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import ru.mavrinvladislav.testtask2024.data.NoteMapper
@@ -26,9 +29,13 @@ class NotesViewModel(
     private val deleteNoteUseCase = DeleteNoteUseCase(repository)
 
     val state = getAllNotesUseCase().map {
-        NotesStateScreen.ContentLoaded(it) as NotesStateScreen
+        if (it.isEmpty()) {
+            NotesStateScreen.NoContent
+        } else {
+            NotesStateScreen.ContentLoaded(it) as NotesStateScreen
+        }
     }.onStart {
-        emit(NotesStateScreen.NoContent)
+        emit(NotesStateScreen.Loading)
     }
 
     fun deleteNote(note: Note) {

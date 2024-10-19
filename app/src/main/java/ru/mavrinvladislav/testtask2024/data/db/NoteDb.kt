@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "all_notes")
 data class NoteDb(
+    val isDraft: Boolean,
     val title: String,
     val text: String,
     @PrimaryKey(autoGenerate = true)

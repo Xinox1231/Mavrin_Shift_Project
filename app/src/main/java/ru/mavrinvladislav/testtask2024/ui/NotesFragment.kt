@@ -34,7 +34,7 @@ class NotesFragment : Fragment() {
     }
 
     private val adapter by lazy {
-        NotesAdapter()
+        NotesAdapter(requireContext())
     }
 
     override fun onCreateView(
@@ -49,8 +49,8 @@ class NotesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupClickListeners()
-        observeViewModel()
         binding.rcViewNotes.adapter = adapter
+        observeViewModel()
         adapter.onNoteClickListener = { note ->
             launchNoteEditorFragmentEdit(note.id)
         }
@@ -109,13 +109,22 @@ class NotesFragment : Fragment() {
         lifecycleScope.launch {
             repeatOnLifecycle(state = Lifecycle.State.RESUMED) {
                 viewModel.state.collect {
+                    binding.progressBarNotes.visibility = View.GONE
                     when (it) {
+                        NotesStateScreen.Loading -> {
+                            Log.d(LOG_TAG, "State: Loading")
+                            binding.progressBarNotes.visibility = View.VISIBLE
+                        }
+
                         NotesStateScreen.NoContent -> {
+                            adapter.submitList(emptyList())
+                            Log.d(LOG_TAG, "State: No content")
                             binding.ivNoContent.visibility = View.VISIBLE
                             binding.tvNoContent.visibility = View.VISIBLE
                         }
 
                         is NotesStateScreen.ContentLoaded -> {
+                            Log.d(LOG_TAG, "State: Content loaded")
                             binding.ivNoContent.visibility = View.GONE
                             binding.tvNoContent.visibility = View.GONE
                             adapter.submitList(it.list)

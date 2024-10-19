@@ -1,11 +1,9 @@
 package ru.mavrinvladislav.testtask2024.presentation
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import ru.mavrinvladislav.testtask2024.data.NoteMapper
 import ru.mavrinvladislav.testtask2024.data.NoteRepositoryImpl
@@ -14,7 +12,6 @@ import ru.mavrinvladislav.testtask2024.data.db.NotesDataBase
 import ru.mavrinvladislav.testtask2024.domain.CreateNewNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.EditNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.GetNoteUseCase
-import ru.mavrinvladislav.testtask2024.domain.Note
 import ru.mavrinvladislav.testtask2024.domain.SaveNoteUseCase
 
 class NotesEditorViewModel(application: Application) : AndroidViewModel(application) {
@@ -28,31 +25,30 @@ class NotesEditorViewModel(application: Application) : AndroidViewModel(applicat
     private val saveNoteUseCase = SaveNoteUseCase(repository)
     private val getNoteUseCase = GetNoteUseCase(repository)
 
-    val note = MutableLiveData<Note>()
+    val note = MutableStateFlow<NotesEditorState>(NotesEditorState.Initial)
 
-    val shouldCloseScreen = MutableLiveData<Boolean>(false)
-
-    fun createNewNoteAndSaveToDb(inputTitle: String?, inputText: String?) {
+    fun createNewNoteAndSaveToDb(isDraft: Boolean, inputTitle: String?, inputText: String?) {
         val title = parseString(inputTitle)
         val text = parseString(inputText)
         viewModelScope.launch {
-            val note = createNewNoteUseCase(title, text)
-            saveNoteUseCase(note)
-            shouldCloseScreen.value = true
+            val newNote = createNewNoteUseCase(isDraft, title, text)
+            saveNoteUseCase(newNote)
+            note.value = NotesEditorState.Close
         }
     }
 
-    suspend fun editNote(inputTitle: String?, inputText: String?) {
+    suspend fun editNote(isDraft: Boolean, inputTitle: String?, inputText: String?) {
         val title = parseString(inputTitle)
         val text = parseString(inputText)
-        note.value?.let {
-            Log.d(LOG_TAG, it.id.toString())
-            val copy = it.copy(
+        note.value.let {
+            it as NotesEditorState.Open
+            val copy = it.note.copy(
+                isDraft = isDraft,
                 title = title,
                 text = text
             )
             editNoteUseCase(copy)
-            shouldCloseScreen.value = true
+            note.value = NotesEditorState.Close
         }
     }
 
@@ -62,7 +58,8 @@ class NotesEditorViewModel(application: Application) : AndroidViewModel(applicat
 
     fun getNote(noteId: Int) {
         viewModelScope.launch {
-            note.value = getNoteUseCase(noteId)
+            note.value = NotesEditorState.Loading
+            note.value = NotesEditorState.Open(getNoteUseCase(noteId))
         }
     }
 

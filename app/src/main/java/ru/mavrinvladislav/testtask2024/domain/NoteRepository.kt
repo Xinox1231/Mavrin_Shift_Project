@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 interface NoteRepository {
 
     suspend fun createNewNote(
+        isDraft: Boolean,
         title: String,
         text: String
     ): Note

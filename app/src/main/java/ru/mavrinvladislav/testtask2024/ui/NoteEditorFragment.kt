@@ -1,17 +1,21 @@
 package ru.mavrinvladislav.testtask2024.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import kotlinx.coroutines.launch
 import ru.mavrinvladislav.testtask2024.databinding.FragmentNoteEditorBinding
 import ru.mavrinvladislav.testtask2024.domain.Note
+import ru.mavrinvladislav.testtask2024.presentation.NotesEditorState
 import ru.mavrinvladislav.testtask2024.presentation.NotesEditorViewModel
 import ru.mavrinvladislav.testtask2024.utils.Constants
 
@@ -27,6 +31,8 @@ class NoteEditorFragment : Fragment() {
     private val noteId by lazy {
         args.noteId
     }
+
+    private var isSaving = false
 
     private val viewModel by lazy {
         ViewModelProvider(this)[NotesEditorViewModel::class.java]
@@ -48,37 +54,61 @@ class NoteEditorFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        viewLifecycleOwner.lifecycleScope.launch {
-            val title = binding.etTitle.text.toString()
-            val text = binding.etText.text.toString()
+
+        if (requireActivity().isChangingConfigurations) {
+            Log.d(LOG_TAG, "ConfigurationChangingCaught")
+            return
         }
+        if (!isSaving) { // При сохранении фрагмента через кнопку он закрывается. Будет вызван
+            // onPause Чтобы не сохранять его как черновик, добавлена эта проверка
+            Log.d(LOG_TAG, "onPause")
+            viewLifecycleOwner.lifecycleScope.launch {
+                val inputTitle = binding.etTitle.text.toString()
+                val inputText = binding.etText.text.toString()
+                if (isNewNote()) {
+                    Log.d(LOG_TAG, "isNewNote")
+                    viewModel.createNewNoteAndSaveToDb(true, inputTitle, inputText)
+                } else {
+                    Log.d(LOG_TAG, "notNewNote")
+                    viewModel.editNote(true, inputTitle, inputText)
+                }
+            }
+        }
+        Log.d(LOG_TAG, "onPauseFinish")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun launchRightMode() {
         if (isNewNote()) {
-            launchCreateMode()
+            launchCreateMode(false)
         } else {
-            launchEditMode()
+            launchEditMode(false)
         }
     }
 
-    private fun launchCreateMode() {
+    private fun launchCreateMode(isDraftNote: Boolean) {
         binding.buttonSaveNote.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 val inputTitle = binding.etTitle.text.toString()
                 val inputText = binding.etText.text.toString()
-                viewModel.createNewNoteAndSaveToDb(inputTitle, inputText)
+                isSaving = true
+                viewModel.createNewNoteAndSaveToDb(isDraftNote, inputTitle, inputText)
             }
         }
     }
 
-    private fun launchEditMode() {
+    private fun launchEditMode(isDraftNote: Boolean) {
         viewModel.getNote(noteId)
         binding.buttonSaveNote.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 val inputTitle = binding.etTitle.text.toString()
                 val inputText = binding.etText.text.toString()
-                viewModel.editNote(inputTitle, inputText)
+                isSaving = true
+                viewModel.editNote(isDraftNote, inputTitle, inputText)
             }
         }
     }
@@ -91,15 +121,32 @@ class NoteEditorFragment : Fragment() {
     }
 
     private fun observeNote() {
-        viewModel.note.observe(viewLifecycleOwner) { note ->
-            with(binding) {
-                etTitle.setText(note.title)
-                etText.setText(note.text)
-            }
-        }
-        viewModel.shouldCloseScreen.observe(viewLifecycleOwner) {
-            if (it) {
-                findNavController().navigateUp()
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.note.collect { state ->
+                    when (state) {
+                        is NotesEditorState.Initial -> {
+
+                        }
+
+                        is NotesEditorState.Loading -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                        }
+
+                        is NotesEditorState.Open -> {
+                            with(binding) {
+                                progressBar.visibility = View.GONE
+                                val note = state.note
+                                etTitle.setText(note.title)
+                                etText.setText(note.text)
+                            }
+                        }
+
+                        is NotesEditorState.Close -> {
+                            findNavController().navigateUp()
+                        }
+                    }
+                }
             }
         }
     }

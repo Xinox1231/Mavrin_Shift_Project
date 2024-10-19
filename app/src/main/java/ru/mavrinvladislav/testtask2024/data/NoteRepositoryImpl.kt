@@ -12,13 +12,13 @@ class NoteRepositoryImpl(
     private val mapper: NoteMapper
 ) : NoteRepository {
     override suspend fun createNewNote(
+        isDraft: Boolean,
         title: String,
         text: String
     ): Note {
-        val note = Note(title, text)
+        val note = Note(isDraft, title, text)
         return note
     }
-
 
     override suspend fun saveNote(note: Note) {
         withContext(Dispatchers.IO) {
