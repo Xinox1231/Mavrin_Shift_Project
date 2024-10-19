@@ -17,7 +17,6 @@ import ru.mavrinvladislav.testtask2024.databinding.FragmentNoteEditorBinding
 import ru.mavrinvladislav.testtask2024.domain.Note
 import ru.mavrinvladislav.testtask2024.presentation.NotesEditorState
 import ru.mavrinvladislav.testtask2024.presentation.NotesEditorViewModel
-import ru.mavrinvladislav.testtask2024.utils.Constants
 
 class NoteEditorFragment : Fragment() {
 
@@ -50,6 +49,13 @@ class NoteEditorFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         observeNote()
         launchRightMode()
+        configureToolBar()
+    }
+
+    private fun configureToolBar() {
+        binding.toolbar.setNavigationOnClickListener {
+            findNavController().navigateUp()
+        }
     }
 
     override fun onPause() {

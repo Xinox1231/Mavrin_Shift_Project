@@ -53,7 +53,10 @@ class NotesFragment : Fragment() {
         binding.rcViewNotes.adapter = adapter
         observeViewModel()
         setupOnElementClickListeners()
+        setupSearchViewListeners()
+    }
 
+    private fun setupSearchViewListeners() {
         binding.searchViewNotes.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 Log.d(LOG_TAG, "onQueryTextSubmit")
@@ -64,14 +67,13 @@ class NotesFragment : Fragment() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText.isNullOrBlank()){
-
+                Log.d(LOG_TAG, "onQueryTextChange")
+                if (newText.isNullOrBlank()) {
+                    viewModel.searchNote(newText.toString())
                 }
                 return true
             }
         })
-
-
     }
 
     private fun setupOnElementClickListeners() {

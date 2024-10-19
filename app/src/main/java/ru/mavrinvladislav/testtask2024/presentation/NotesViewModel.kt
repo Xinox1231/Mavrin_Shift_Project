@@ -55,15 +55,27 @@ class NotesViewModel(
 
     fun searchNote(query: String) {
         viewModelScope.launch {
-            val dbFlow = searchNotesUseCase(query).map {
-                if (it.isEmpty()) {
-                    NotesStateScreen.NoContent
-                } else {
-                    NotesStateScreen.ContentLoaded(it) as NotesStateScreen
+            if (query.isEmpty()) {
+                val dbFlow = getAllNotesUseCase().map {
+                    if (it.isEmpty()) {
+                        NotesStateScreen.NoContent
+                    } else {
+                        NotesStateScreen.ContentLoaded(it) as NotesStateScreen
+                    }
                 }
+                searchState.emitAll(dbFlow)
+            } else {
+                val dbFlow = searchNotesUseCase(query).map {
+                    if (it.isEmpty()) {
+                        NotesStateScreen.NoContent
+                    } else {
+                        NotesStateScreen.ContentLoaded(it) as NotesStateScreen
+                    }
+                }
+                searchState.emitAll(dbFlow)
             }
-            searchState.emitAll(dbFlow)
         }
     }
+
 
 }
