@@ -4,8 +4,12 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -14,12 +18,14 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import kotlinx.coroutines.launch
+import ru.mavrinvladislav.testtask2024.R
 import ru.mavrinvladislav.testtask2024.databinding.FragmentNoteEditorBinding
 import ru.mavrinvladislav.testtask2024.domain.Note
 import ru.mavrinvladislav.testtask2024.presentation.NoteApplication
 import ru.mavrinvladislav.testtask2024.presentation.NotesEditorState
 import ru.mavrinvladislav.testtask2024.presentation.NoteEditorViewModel
 import ru.mavrinvladislav.testtask2024.presentation.ViewModelFactory
+import ru.mavrinvladislav.testtask2024.utils.Constants
 import javax.inject.Inject
 
 class NoteEditorFragment : Fragment() {
@@ -35,7 +41,6 @@ class NoteEditorFragment : Fragment() {
         args.noteId
     }
 
-    private var isSaving = false
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
@@ -51,6 +56,12 @@ class NoteEditorFragment : Fragment() {
         super.onAttach(context)
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -65,12 +76,7 @@ class NoteEditorFragment : Fragment() {
         observeNote()
         launchRightMode()
         configureToolBar()
-    }
 
-    private fun configureToolBar() {
-        binding.toolbar.setNavigationOnClickListener {
-            findNavController().navigateUp()
-        }
     }
 
     override fun onPause() {
@@ -80,19 +86,17 @@ class NoteEditorFragment : Fragment() {
             Log.d(LOG_TAG, "ConfigurationChangingCaught")
             return
         }
-        if (!isSaving) { // При сохранении фрагмента через кнопку он закрывается. Будет вызван
+        if (!viewModel.shouldSkipSaveOnPause) { // При сохранении фрагмента через кнопку он закрывается. Будет вызван
             // onPause Чтобы не сохранять его как черновик, добавлена эта проверка
             Log.d(LOG_TAG, "onPause")
-            viewLifecycleOwner.lifecycleScope.launch {
-                val inputTitle = binding.etTitle.text.toString()
-                val inputText = binding.etText.text.toString()
-                if (isNewNote()) {
-                    Log.d(LOG_TAG, "isNewNote")
-                    viewModel.createNewNoteAndSaveToDb(true, inputTitle, inputText)
-                } else {
-                    Log.d(LOG_TAG, "notNewNote")
-                    viewModel.editNote(true, inputTitle, inputText)
-                }
+            val inputTitle = binding.etTitle.text.toString()
+            val inputText = binding.etText.text.toString()
+            if (isNewNote()) {
+                Log.d(LOG_TAG, "isNewNote")
+                viewModel.createNewNoteAndSaveToDb(true, inputTitle, inputText)
+            } else {
+                Log.d(LOG_TAG, "notNewNote")
+                viewModel.editNote(true, inputTitle, inputText)
             }
         }
         Log.d(LOG_TAG, "onPauseFinish")
@@ -101,6 +105,36 @@ class NoteEditorFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.deleteNote -> {
+                viewModel.deleteNote(noteId)
+                true
+            }
+
+            R.id.pinNote -> {
+                // Логика для прикрепления заметки
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun configureToolBar() {
+        val toolbar = binding.toolbar
+        toolbar.title = Constants.EMPTY_STRING
+        (activity as AppCompatActivity).setSupportActionBar(toolbar)
+        toolbar.setNavigationOnClickListener {
+            findNavController().navigateUp()
+        }
     }
 
     private fun launchRightMode() {
@@ -116,7 +150,6 @@ class NoteEditorFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 val inputTitle = binding.etTitle.text.toString()
                 val inputText = binding.etText.text.toString()
-                isSaving = true
                 viewModel.createNewNoteAndSaveToDb(isDraftNote, inputTitle, inputText)
             }
         }
@@ -128,7 +161,6 @@ class NoteEditorFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 val inputTitle = binding.etTitle.text.toString()
                 val inputText = binding.etText.text.toString()
-                isSaving = true
                 viewModel.editNote(isDraftNote, inputTitle, inputText)
             }
         }
@@ -140,6 +172,7 @@ class NoteEditorFragment : Fragment() {
             else -> false
         }
     }
+
 
     private fun observeNote() {
         viewLifecycleOwner.lifecycleScope.launch {

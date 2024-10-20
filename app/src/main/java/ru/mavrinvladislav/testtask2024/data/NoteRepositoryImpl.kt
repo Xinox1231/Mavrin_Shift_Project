@@ -37,9 +37,9 @@ class NoteRepositoryImpl @Inject constructor(
             .map { list -> list.map { mapper.mapDbNoteToDomain(it) } }
     }
 
-    override suspend fun deleteNote(note: Note) {
+    override suspend fun deleteNote(noteId: Int) {
         withContext(Dispatchers.IO) {
-            localDataSource.deleteNote(note.id)
+            localDataSource.deleteNote(noteId)
         }
     }
 

@@ -9,13 +9,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import ru.mavrinvladislav.testtask2024.data.NoteMapper
-import ru.mavrinvladislav.testtask2024.data.NoteRepositoryImpl
-import ru.mavrinvladislav.testtask2024.data.NoteRoomLocalDataSource
-import ru.mavrinvladislav.testtask2024.data.db.NotesDataBase
 import ru.mavrinvladislav.testtask2024.domain.DeleteNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.GetAllNotesUseCase
-import ru.mavrinvladislav.testtask2024.domain.Note
 import ru.mavrinvladislav.testtask2024.domain.SearchNotesUseCase
 import javax.inject.Inject
 
@@ -41,9 +36,9 @@ class NotesViewModel @Inject constructor(
         return merge(this, another)
     }
 
-    fun deleteNote(note: Note) {
+    fun deleteNote(noteId: Int) {
         viewModelScope.launch {
-            deleteNoteUseCase(note)
+            deleteNoteUseCase(noteId)
         }
     }
 

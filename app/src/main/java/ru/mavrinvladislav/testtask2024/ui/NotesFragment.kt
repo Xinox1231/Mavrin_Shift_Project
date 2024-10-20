@@ -113,7 +113,7 @@ class NotesFragment : Fragment() {
                     vibrator.vibrate(500)
                 }
             }
-            viewModel.deleteNote(note)
+            viewModel.deleteNote(note.id)
             true // Возвращаем true, чтобы подтвердить обработку события
         }
     }

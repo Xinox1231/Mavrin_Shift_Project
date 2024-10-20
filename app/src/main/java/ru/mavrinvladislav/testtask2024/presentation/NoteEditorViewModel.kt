@@ -7,8 +7,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import ru.mavrinvladislav.testtask2024.domain.CreateNewNoteUseCase
+import ru.mavrinvladislav.testtask2024.domain.DeleteNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.EditNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.GetNoteUseCase
+import ru.mavrinvladislav.testtask2024.domain.Note
 import ru.mavrinvladislav.testtask2024.domain.SaveNoteUseCase
 import javax.inject.Inject
 
@@ -16,12 +18,15 @@ class NoteEditorViewModel @Inject constructor(
     private val createNewNoteUseCase: CreateNewNoteUseCase,
     private val editNoteUseCase: EditNoteUseCase,
     private val saveNoteUseCase: SaveNoteUseCase,
-    private val getNoteUseCase: GetNoteUseCase
+    private val getNoteUseCase: GetNoteUseCase,
+    private val deleteNoteUseCase: DeleteNoteUseCase
 ) : ViewModel() {
 
     private val _note = MutableStateFlow<NotesEditorState>(NotesEditorState.Initial)
     val note: SharedFlow<NotesEditorState>
         get() = _note.asSharedFlow()
+
+    var shouldSkipSaveOnPause = false
 
     fun createNewNoteAndSaveToDb(isDraft: Boolean, inputTitle: String?, inputText: String?) {
         val title = parseString(inputTitle)
@@ -29,21 +34,33 @@ class NoteEditorViewModel @Inject constructor(
         viewModelScope.launch {
             val newNote = createNewNoteUseCase(isDraft, title, text)
             saveNoteUseCase(newNote)
+            shouldSkipSaveOnPause = true
             _note.value = NotesEditorState.Close
         }
     }
 
-    suspend fun editNote(isDraft: Boolean, inputTitle: String?, inputText: String?) {
-        val title = parseString(inputTitle)
-        val text = parseString(inputText)
-        _note.value.let {
-            it as NotesEditorState.Open
-            val copy = it.note.copy(
-                isDraft = isDraft,
-                title = title,
-                text = text
-            )
-            editNoteUseCase(copy)
+    fun editNote(isDraft: Boolean, inputTitle: String?, inputText: String?) {
+        viewModelScope.launch {
+            val title = parseString(inputTitle)
+            val text = parseString(inputText)
+            _note.value.let {
+                it as NotesEditorState.Open
+                val copy = it.note.copy(
+                    isDraft = isDraft,
+                    title = title,
+                    text = text
+                )
+                editNoteUseCase(copy)
+                shouldSkipSaveOnPause = true
+                _note.value = NotesEditorState.Close
+            }
+        }
+    }
+
+    fun deleteNote(noteId: Int) {
+        viewModelScope.launch {
+            deleteNoteUseCase(noteId)
+            shouldSkipSaveOnPause = true
             _note.value = NotesEditorState.Close
         }
     }
