@@ -15,7 +15,7 @@ interface NotesDao {
     @Query("DELETE FROM all_notes WHERE id=:noteId")
     suspend fun deleteNote(noteId: Int)
 
-    @Query("SELECT * FROM all_notes")
+    @Query("SELECT * FROM all_notes ORDER by isPinned DESC")
     fun getNotesList(): Flow<List<NoteDb>>
 
     @Query("SELECT * FROM all_notes WHERE id=:noteId LIMIT 1")

@@ -8,6 +8,7 @@ data class NoteDb(
     val isDraft: Boolean,
     val title: String,
     val text: String,
+    val isPinned: Boolean,
     @PrimaryKey(autoGenerate = true)
     val id: Int = UNDEFINED_ID,
 ) {

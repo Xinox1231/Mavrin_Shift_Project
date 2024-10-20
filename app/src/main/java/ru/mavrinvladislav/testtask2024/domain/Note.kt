@@ -4,6 +4,7 @@ data class Note(
     val isDraft: Boolean,
     val title: String,
     val text: String,
+    val isPinned: Boolean = false,
     val id: Int = UNDEFINED_ID,
 ) {
     companion object {

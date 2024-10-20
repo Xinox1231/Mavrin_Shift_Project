@@ -43,19 +43,25 @@ class NoteEditorViewModel @Inject constructor(
         viewModelScope.launch {
             val title = parseString(inputTitle)
             val text = parseString(inputText)
-            _note.value.let {
-                it as NotesEditorState.Open
-                val copy = it.note.copy(
-                    isDraft = isDraft,
-                    title = title,
-                    text = text
-                )
-                editNoteUseCase(copy)
-                shouldSkipSaveOnPause = true
-                _note.value = NotesEditorState.Close
+
+            when (val currentState = _note.value) {
+                is NotesEditorState.Open -> {
+                    val copy = currentState.note.copy(
+                        isDraft = isDraft,
+                        title = title,
+                        text = text
+                    )
+                    editNoteUseCase(copy)
+                    shouldSkipSaveOnPause = true
+                    _note.value = NotesEditorState.Close
+                }
+
+                else -> {
+                }
             }
         }
     }
+
 
     fun deleteNote(noteId: Int) {
         viewModelScope.launch {

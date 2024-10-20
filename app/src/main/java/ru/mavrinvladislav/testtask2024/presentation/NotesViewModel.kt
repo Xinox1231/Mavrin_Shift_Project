@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import ru.mavrinvladislav.testtask2024.domain.DeleteNoteUseCase
+import ru.mavrinvladislav.testtask2024.domain.EditNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.GetAllNotesUseCase
+import ru.mavrinvladislav.testtask2024.domain.Note
 import ru.mavrinvladislav.testtask2024.domain.SearchNotesUseCase
 import javax.inject.Inject
 
@@ -18,6 +20,7 @@ class NotesViewModel @Inject constructor(
     private val getAllNotesUseCase: GetAllNotesUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val searchNotesUseCase: SearchNotesUseCase,
+    private val editNoteUseCase: EditNoteUseCase
 ) : ViewModel() {
 
     private val searchState = MutableSharedFlow<NotesStateScreen>()
@@ -36,9 +39,10 @@ class NotesViewModel @Inject constructor(
         return merge(this, another)
     }
 
-    fun deleteNote(noteId: Int) {
+    fun changePinState(note: Note) {
         viewModelScope.launch {
-            deleteNoteUseCase(noteId)
+            val newNote = note.copy(isPinned = !note.isPinned)
+            editNoteUseCase(newNote)
         }
     }
 

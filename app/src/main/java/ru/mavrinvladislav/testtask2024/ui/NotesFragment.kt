@@ -18,9 +18,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import androidx.appcompat.widget.SearchView
+import ru.mavrinvladislav.testtask2024.R
 import ru.mavrinvladislav.testtask2024.databinding.FragmentNotesBinding
 import ru.mavrinvladislav.testtask2024.presentation.NoteApplication
-import ru.mavrinvladislav.testtask2024.presentation.NoteEditorViewModel
 import ru.mavrinvladislav.testtask2024.presentation.NotesStateScreen
 import ru.mavrinvladislav.testtask2024.presentation.NotesViewModel
 import ru.mavrinvladislav.testtask2024.presentation.ViewModelFactory
@@ -102,7 +102,7 @@ class NotesFragment : Fragment() {
 
         adapter.onNoteLongClickListener = { note ->
             if (vibrator.hasVibrator()) {
-                Toast.makeText(requireContext(), note.title, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.changed, Toast.LENGTH_SHORT).show()
                 // Для API 26 и выше
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     val effect =
@@ -113,7 +113,7 @@ class NotesFragment : Fragment() {
                     vibrator.vibrate(500)
                 }
             }
-            viewModel.deleteNote(note.id)
+            viewModel.changePinState(note)
             true // Возвращаем true, чтобы подтвердить обработку события
         }
     }

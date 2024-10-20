@@ -10,6 +10,7 @@ class NoteMapper @Inject constructor() {
         isDraft = db.isDraft,
         title = db.title,
         text = db.text,
+        isPinned = db.isPinned,
         id = db.id
     )
 
@@ -17,6 +18,7 @@ class NoteMapper @Inject constructor() {
         isDraft = domain.isDraft,
         title = domain.title,
         text = domain.text,
+        isPinned = domain.isPinned,
         id = domain.id
     )
 

@@ -119,11 +119,6 @@ class NoteEditorFragment : Fragment() {
                 true
             }
 
-            R.id.pinNote -> {
-                // Логика для прикрепления заметки
-                true
-            }
-
             else -> super.onOptionsItemSelected(item)
         }
     }

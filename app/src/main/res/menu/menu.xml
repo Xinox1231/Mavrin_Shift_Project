@@ -8,10 +8,4 @@
         android:title="Delete"
         app:showAsAction="always" />
 
-    <item
-        android:id="@+id/pinNote"
-        android:icon="@drawable/ic_outline_push_pin"
-        android:title="Pin"
-        app:showAsAction="always" />
-
 </menu>
