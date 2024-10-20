@@ -1,7 +1,6 @@
 package ru.mavrinvladislav.testtask2024.presentation
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,18 +17,13 @@ import ru.mavrinvladislav.testtask2024.domain.DeleteNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.GetAllNotesUseCase
 import ru.mavrinvladislav.testtask2024.domain.Note
 import ru.mavrinvladislav.testtask2024.domain.SearchNotesUseCase
+import javax.inject.Inject
 
-class NotesViewModel(
-    application: Application
-) : AndroidViewModel(application) {
-
-    private val localDataSource =
-        NoteRoomLocalDataSource(NotesDataBase.getInstance(application).notesDao())
-    private val mapper = NoteMapper()
-    private val repository = NoteRepositoryImpl(localDataSource, mapper)
-    private val getAllNotesUseCase = GetAllNotesUseCase(repository)
-    private val deleteNoteUseCase = DeleteNoteUseCase(repository)
-    private val searchNotesUseCase = SearchNotesUseCase(repository)
+class NotesViewModel @Inject constructor(
+    private val getAllNotesUseCase: GetAllNotesUseCase,
+    private val deleteNoteUseCase: DeleteNoteUseCase,
+    private val searchNotesUseCase: SearchNotesUseCase,
+) : ViewModel() {
 
     private val searchState = MutableSharedFlow<NotesStateScreen>()
 

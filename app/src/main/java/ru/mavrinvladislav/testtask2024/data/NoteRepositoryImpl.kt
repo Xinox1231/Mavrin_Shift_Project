@@ -6,8 +6,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import ru.mavrinvladislav.testtask2024.domain.Note
 import ru.mavrinvladislav.testtask2024.domain.NoteRepository
+import javax.inject.Inject
 
-class NoteRepositoryImpl(
+class NoteRepositoryImpl @Inject constructor(
     private val localDataSource: NoteLocalDataSource,
     private val mapper: NoteMapper
 ) : NoteRepository {

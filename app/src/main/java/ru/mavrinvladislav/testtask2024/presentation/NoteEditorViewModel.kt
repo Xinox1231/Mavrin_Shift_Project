@@ -1,31 +1,27 @@
 package ru.mavrinvladislav.testtask2024.presentation
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import ru.mavrinvladislav.testtask2024.data.NoteMapper
-import ru.mavrinvladislav.testtask2024.data.NoteRepositoryImpl
-import ru.mavrinvladislav.testtask2024.data.NoteRoomLocalDataSource
-import ru.mavrinvladislav.testtask2024.data.db.NotesDataBase
 import ru.mavrinvladislav.testtask2024.domain.CreateNewNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.EditNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.GetNoteUseCase
 import ru.mavrinvladislav.testtask2024.domain.SaveNoteUseCase
+import javax.inject.Inject
 
-class NotesEditorViewModel(application: Application) : AndroidViewModel(application) {
+class NoteEditorViewModel @Inject constructor(
+    private val createNewNoteUseCase: CreateNewNoteUseCase,
+    private val editNoteUseCase: EditNoteUseCase,
+    private val saveNoteUseCase: SaveNoteUseCase,
+    private val getNoteUseCase: GetNoteUseCase
+) : ViewModel() {
 
-    private val localDataSource =
-        NoteRoomLocalDataSource(NotesDataBase.getInstance(application).notesDao())
-    private val mapper = NoteMapper()
-    private val repository = NoteRepositoryImpl(localDataSource, mapper)
-    private val createNewNoteUseCase = CreateNewNoteUseCase(repository)
-    private val editNoteUseCase = EditNoteUseCase(repository)
-    private val saveNoteUseCase = SaveNoteUseCase(repository)
-    private val getNoteUseCase = GetNoteUseCase(repository)
-
-    val note = MutableStateFlow<NotesEditorState>(NotesEditorState.Initial)
+    private val _note = MutableStateFlow<NotesEditorState>(NotesEditorState.Initial)
+    val note: SharedFlow<NotesEditorState>
+        get() = _note.asSharedFlow()
 
     fun createNewNoteAndSaveToDb(isDraft: Boolean, inputTitle: String?, inputText: String?) {
         val title = parseString(inputTitle)
@@ -33,14 +29,14 @@ class NotesEditorViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             val newNote = createNewNoteUseCase(isDraft, title, text)
             saveNoteUseCase(newNote)
-            note.value = NotesEditorState.Close
+            _note.value = NotesEditorState.Close
         }
     }
 
     suspend fun editNote(isDraft: Boolean, inputTitle: String?, inputText: String?) {
         val title = parseString(inputTitle)
         val text = parseString(inputText)
-        note.value.let {
+        _note.value.let {
             it as NotesEditorState.Open
             val copy = it.note.copy(
                 isDraft = isDraft,
@@ -48,7 +44,7 @@ class NotesEditorViewModel(application: Application) : AndroidViewModel(applicat
                 text = text
             )
             editNoteUseCase(copy)
-            note.value = NotesEditorState.Close
+            _note.value = NotesEditorState.Close
         }
     }
 
@@ -58,8 +54,8 @@ class NotesEditorViewModel(application: Application) : AndroidViewModel(applicat
 
     fun getNote(noteId: Int) {
         viewModelScope.launch {
-            note.value = NotesEditorState.Loading
-            note.value = NotesEditorState.Open(getNoteUseCase(noteId))
+            _note.value = NotesEditorState.Loading
+            _note.value = NotesEditorState.Open(getNoteUseCase(noteId))
         }
     }
 

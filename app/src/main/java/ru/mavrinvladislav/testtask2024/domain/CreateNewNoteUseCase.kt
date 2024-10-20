@@ -1,6 +1,8 @@
 package ru.mavrinvladislav.testtask2024.domain
 
-class CreateNewNoteUseCase(
+import javax.inject.Inject
+
+class CreateNewNoteUseCase @Inject constructor(
     private val repository: NoteRepository
 ) {
     suspend operator fun invoke(

@@ -1,5 +1,6 @@
 package ru.mavrinvladislav.testtask2024.ui
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
@@ -18,9 +19,13 @@ import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import androidx.appcompat.widget.SearchView
 import ru.mavrinvladislav.testtask2024.databinding.FragmentNotesBinding
+import ru.mavrinvladislav.testtask2024.presentation.NoteApplication
+import ru.mavrinvladislav.testtask2024.presentation.NoteEditorViewModel
 import ru.mavrinvladislav.testtask2024.presentation.NotesStateScreen
 import ru.mavrinvladislav.testtask2024.presentation.NotesViewModel
+import ru.mavrinvladislav.testtask2024.presentation.ViewModelFactory
 import ru.mavrinvladislav.testtask2024.presentation.adapter.NotesAdapter
+import javax.inject.Inject
 
 
 class NotesFragment : Fragment() {
@@ -30,12 +35,23 @@ class NotesFragment : Fragment() {
         get() = _binding ?: throw Exception(
             "FragmentNotesBinding is null"
         )
-    private val viewModel by lazy {
-        ViewModelProvider(this)[NotesViewModel::class.java]
+
+    private val component by lazy {
+        (requireActivity().application as NoteApplication).component
     }
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
+    private lateinit var viewModel: NotesViewModel
 
     private val adapter by lazy {
         NotesAdapter(requireContext())
+    }
+
+    override fun onAttach(context: Context) {
+        component.inject(this)
+        super.onAttach(context)
     }
 
     override fun onCreateView(
@@ -49,6 +65,7 @@ class NotesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel = ViewModelProvider(this, viewModelFactory)[NotesViewModel::class]
         setupClickListeners()
         binding.rcViewNotes.adapter = adapter
         observeViewModel()

@@ -1,5 +1,6 @@
 package ru.mavrinvladislav.testtask2024.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,8 +16,11 @@ import androidx.navigation.fragment.navArgs
 import kotlinx.coroutines.launch
 import ru.mavrinvladislav.testtask2024.databinding.FragmentNoteEditorBinding
 import ru.mavrinvladislav.testtask2024.domain.Note
+import ru.mavrinvladislav.testtask2024.presentation.NoteApplication
 import ru.mavrinvladislav.testtask2024.presentation.NotesEditorState
-import ru.mavrinvladislav.testtask2024.presentation.NotesEditorViewModel
+import ru.mavrinvladislav.testtask2024.presentation.NoteEditorViewModel
+import ru.mavrinvladislav.testtask2024.presentation.ViewModelFactory
+import javax.inject.Inject
 
 class NoteEditorFragment : Fragment() {
 
@@ -33,8 +37,18 @@ class NoteEditorFragment : Fragment() {
 
     private var isSaving = false
 
-    private val viewModel by lazy {
-        ViewModelProvider(this)[NotesEditorViewModel::class.java]
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
+    private lateinit var viewModel: NoteEditorViewModel
+
+    private val component by lazy {
+        (requireActivity().application as NoteApplication).component
+    }
+
+    override fun onAttach(context: Context) {
+        component.inject(this@NoteEditorFragment)
+        super.onAttach(context)
     }
 
     override fun onCreateView(
@@ -47,6 +61,7 @@ class NoteEditorFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel = ViewModelProvider(this, viewModelFactory)[NoteEditorViewModel::class]
         observeNote()
         launchRightMode()
         configureToolBar()
