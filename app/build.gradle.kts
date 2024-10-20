@@ -66,8 +66,4 @@ dependencies {
     implementation(libs.dagger.android)
     ksp(libs.dagger.compiler)
 
-    //Coil
-    implementation(libs.io.coil)
-
-
 }

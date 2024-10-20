@@ -9,4 +9,3 @@ sealed class NotesEditorState() {
     class Open(val note: Note) : NotesEditorState()
     data object Close : NotesEditorState()
 }
-
